@@ -13,6 +13,7 @@ import paymentRoute from "./routes/payment.route.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 
+
 dotenv.config();
 
 const app = express();
@@ -21,15 +22,44 @@ app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.use(cookieParser());
 
+// const allowedOrigins = [
+  
+//   "http://gig-nest.vercel.app/",
+  
+// ];
+
+// app.use(
+//   cors({
+//     origin: function (origin, callback) {
+//       if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+//         callback(null, true);
+//       } else {
+//         callback(new Error("Not allowed by CORS"));
+//       }
+//     },
+//     credentials: true,
+//   })
+// );
+
 app.use(
   cors({
-    origin: 'http://localhost:5173', // Or change to your frontend's deployed URL
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: true,
+    origin: 'http://localhost:5173', // Allow requests from this origin
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow specified methods
+    credentials: true, // Enable cookies and authorization headers
   })
 );
 
-// Routes
+
+
+const connect = async () => {
+  try {
+    await mongoose.connect(`${process.env.MONGODB_URI}`);
+    console.log("Connected to MongoDB");
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 app.use("/api/auth", authRoute);
 app.use("/api/users", userRoute);
 app.use("/api/gigs", gigRoute);
@@ -39,6 +69,7 @@ app.use("/api/conversations", conversationRoute);
 app.use("/api/reviews", reviewRoute);
 app.use("/api/payment", paymentRoute);
 
+
 app.get("/", (req, res) => {
   res.status(200).send("Backend is running");
 });
@@ -47,22 +78,9 @@ app.get("/api/test", (req, res) => {
   res.status(200).json({ message: "Backend is running" });
 });
 
-// 🟢 Mongoose connect on first request
-let isConnected = false;
-const connectToMongo = async () => {
-  if (!isConnected) {
-    try {
-      await mongoose.connect(process.env.MONGODB_URI);
-      isConnected = true;
-      console.log("Connected to MongoDB");
-    } catch (err) {
-      console.error("MongoDB connection error:", err);
-    }
-  }
-};
+await connect();
+app.listen(`${process.env.PORT}`, () => {
+  console.log(`Backend is running at port ${process.env.PORT}`);
+});
 
-// 🟢 Export handler for Vercel
-export default async function handler(req, res) {
-  await connectToMongo();
-  app(req, res);
-}
+export default app;
