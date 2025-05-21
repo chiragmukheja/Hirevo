@@ -43,7 +43,7 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: 'https://gig-nest.vercel.app', // Allow requests from this origin
+    origin: 'http://localhost:5173', // Allow requests from this origin
     methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow specified methods
     credentials: true, // Enable cookies and authorization headers
   })
